@@ -1,0 +1,153 @@
+
+[simulation]
+# simulation name
+# default: defaultSim
+name = "defaultSim"
+
+# random seed
+# default: 0
+seed = 0
+
+[setup]
+# setup simulation using registered factories. This will cause the simulator to panic if a factory
+# is not registered, or if something is not set.
+
+# end condition to be used
+# default: ["time","600.0"]
+end_condition = ["time","600.0"]
+
+# global network
+# default: "default_global_network"
+global_network = "default_global_network"
+
+# global state
+# default: "default_global_state"
+global_state = "default_global_state"
+
+# node implementations to add to the simulation
+# it is possible to repeat the same implementation in this list, in order to set up different combinations of the node with other parameters
+# default: ["default_node"]
+node_list = ["default_node"]
+
+# number of nodes for each node implementation listed in 'node_list'
+# each value create a 'group'
+# default: [2]
+node_count_list = [2]
+
+# node_network used for all nodes in each group
+# default: ["default_node_network"]
+node_network_list = ["default_node_network"]
+
+# behavior for all nodes in each group (set in 'node_list')
+# default: ["default_behavior"]
+node_behavior_list = ["default_behavior"]
+
+
+
+
+# XXX stuff below is not implemented
+
+# ledger to be used by all nodes in each group
+# default: ["default_ledger"]
+node_ledger_list = ["default_ledger"]
+
+# consensus protocol used by all nodes in each group
+# default: ["default_consensus"]
+node_consensus_list = ["default_consensus"]
+
+# list of applications to set up in all nodes of each group
+# this is an optional configuration: if nothing is set, no application is set up
+# default: [[]]
+node_applications_list = [[]]
+
+[default_node]
+
+# node network to use in case none is set
+# default: none
+default_node_network = "default_node_network"
+
+# behavior to use in case none is set
+# default: none
+default_behavior = "default_behavior"
+
+
+
+
+# XXX stuff below is not implemented
+
+# ledger to use in case none is set
+# default: none
+default_ledger = "default_ledger"
+
+# consensus protocol to use in case none is set
+# default: none
+default_consensus = "default_consensus"
+
+[default_global_network]
+
+# distribution to follow for broadcast messages
+# options: exponential, uniform, normal, or zipf
+# default: exponential
+broadcast_distribution = "exponential"
+
+# parameters for the selected distribution
+# negative values for 'max' result in no limit (math.MaxFloat64 in practice)
+# expected values:
+#  exponential:         [average,min,max], default: [0.109,0.01,-1.0]
+#  uniform:             [min,max], default: [0.01,0.5]
+#  normal:              [average,stddev,min,max], default: [0.05,0.05,0.01,0.5]
+#  zipf:                not supported yet
+broadcast_config = [0.109,0.01,-1.0]
+
+# distribution to follow for broadcast messages
+# options: exponential, uniform, normal, or zipf
+# default: exponential
+p2p_distribution = "normal"
+
+# parameters for the selected distribution
+# negative values for 'max' result in no limit (math.MaxFloat64 in practice)
+# expected values:
+#  exponential:         [average,min,max], default: [0.109,0.01,-1.0]
+#  uniform:             [min,max], default: [0.01,0.5]
+#  normal:              [average,stddev,min,max], default: [0.05,0.05,0.01,0.5]
+#  zipf:                not supported yet
+p2p_config = [0.05,0.05,0.01,0.5]
+
+[logger]
+# possible log levels: debug,info,warn,error,off
+# default: off
+level = "debug"
+
+# only log messages with the tags listed
+# "all" means all tags, and an empty list makes logging to be turned off
+# default: ["all"]
+tag_list = ["all"]
+
+# list of files to output log messages
+# 'stdout' prints the messages
+# Nothing is logged if this is empty or not set (as if level is 'off')
+# default: []
+output_list = ["stdout"]
+
+
+[measurements] # XXX not implemented
+# measure timestamps of listed event types
+# "all" means all events
+# default: []
+event_type_list = []
+
+# measure timestamps of listed tags (user-defined)
+# "all" means all tags
+# default: []
+tag_list = []
+
+# file to write raw measurements from tags and events
+# default: "simulation.data"
+output = "simulation.data"
+
+# List of measurement modules to include. Modules should have registered
+# factories. Each module write its output to a separate json file, and can
+# be configured using its own section in this configuration file.
+# default: []
+measurement_modules = []
+

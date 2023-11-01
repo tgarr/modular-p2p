@@ -1,0 +1,112 @@
+
+- global network should only implement P2P messages 
+    - delay can change based on message size and geographic location, but the default implementation just applies a delay from a distribution (or a fixed value <- this is new)
+    - The broadcast/dissemination logic is an overlay implemented in the nodes (call global_network.send for each other node -> maybe also implement a loss ratio?)
+    - idea:
+        SendMessage()
+        GetConnectedNodes()
+        Connect()
+        Disconnect()
+    - what about loopback?
+
+- maybe: 
+    - NetworkLayer: actual network interface of the node, just received a message and forwards it to behavior(?)
+    - DisseminationLayer: implements dissemination protocol (broadcast/overlay/neighbors logic should be here, uses the network layer)
+    - DataLayer
+    - ConsensusLayer
+    - ExecutionLayer
+        - Execute(transaction)
+    - ApplicationLayer
+
+- Measurements:
+    - raw measurements are written to the given file when the simulation ends
+    - the main file can also get them after Run() finishes
+    - the library provide some pre-defined modules based on standard events
+    - timestamping infrastructure based on tags (like cascade), with extra info (maybe even strings?)
+        - tag filter configuration
+        - events are also registered (use some extra info to identify the events? destination name, type, ...)
+    - on the fly measurement system: measurement modules
+        - export json for each module
+
+- NodeStorage (or should it be Data or DataLayer?):
+    - GetState() map[string]interface{}
+    - GetLedger() ILedger
+    - GetNextBlock() IBlock
+    - CheckTx, checkBlock
+    - how to get missing blocks? use the global storage by default?
+- Consensus:
+    - proposal IConsensusProposal
+        - txpool
+    - convergence IConsensusConvergence
+        - finality rule
+- Observations:
+    - nodestorage and consensus use the same type of block: how to set it in the configuration? maybe set it in the global state or simulation?
+    - nodestate and consensus are highly coupled: should they be together somehow?
+    - can a message be relevant for more than one layer? e.g. a new block arrives
+- complete Bitcoin implementation
+
+- use generics for blocks and transactions
+- Bitcoin:
+    - Ledger (simple but will take a few hours to make it reusable)
+    - Consensus: PoW + longest chain 
+        - mining power: follow distributions, allow for manual input (json: id:power, id1-id2:power, *:power (default)). Zipf / powerlaw
+    - input workload: simple version only for block proposal, implemented in the block proposal
+    - what about missing blocks? how does the request work?
+- node: maybe it can start with <nil> stuff (ledger,consensus,etc). Behavior should init whatever it needs?
+- what about transaction processing, transaction pool? Should it be a new layer? TransactionProcessor.IsValid(ITransaction), TransactionPool.?
+    - or is it part of the consensus or ledger?
+
+- churn: nodes may disconnect and reconnect later to the network
+- input workload (transactions) implemented as IApplication
+- what about smart contracts? Execution layer? node.execution.execute(transaction)
+- should events be strings? (instead of numbers) -> more intuitive but slower
+- comment all code, and log (debug,info,error) mostly in layers/* packages
+- reward/incentive layer?
+- support for grule-rule-engine?
+- write index of simulations in a database? sqlite3 file by default, but can point to any DB
+    - not sure how to handle custom configurations. Maybe write the name of the modules used? 
+      But what if I build the simulation programatically ?
+
+Goals:
+- Standard Bitcoin with clients producing transactions
+- Selfish mining
+- Network with geographically distributed nodes: delay, loss rate, bandwidth for each pair of
+  locations (track nodes location in the network implementation?)
+- Q-Chain
+- Permissioned (BFT consensus)
+- DAG-based
+- network that takes into account the size of the messages and bandwidth to compute the propagation
+  delay
+- Round-based
+- Implement only a customized application that run on pre-defined nodes
+    - applications on light nodes/clients and ledger on full nodes?
+- Challenging environments, for example: Internet of Underwater Things (IoUT), inter-satellite network, ...
+- Visualization tools (see examples from other simulators, like SimBlock, BlockSim)
+
+
+
+==== Future improvements ====
+
+Possible configuration improvements: 
+    - each node (and its stack: network, consensus, etc) may have a different config
+    - it should be able to configure separatly every component (multiple instances of config? or just have a setter for everything and the config file contains just the defaults?)
+    - maybe have a factory function that receives a 'section' in the config file from which it should take the values?
+        - For a network, for example: 'slow' -> go to section 'network.slow', while 'fast' -> 'network.fast' (use nesting in toml format)
+    - default binary that executes a simulation according to config file
+        - configuration section for it
+        - can set up default implementations
+        - can run multiple simulations in parallel with different configs? (how to do that?) should config,log,measurement be per simulation?
+        - implement support for go plugins? config file list the plugins which are loaded by the default binary
+
+Possible engine improvements:
+- locks: identify all parts that should be thread-safe and add locks where they are missing
+- Multi-threaded event engine: events are handled in parallel
+    - start parallel handlers in batches: batches have a max size, but up to that max size they
+      bundle all events within a time period (a parameters). For example, if the period is 1 second,
+      all events (up to the limit) within that same 1 second are processed in parallel. If the limit is 1,
+      then it reverts back to normal sequencial event processing. It is considered that all events within
+      the period happen "at the same time". All events scheduled by those handlers should start from the
+      time of the last event of the batch (like a barrier).
+    - what if the same node is receiving many messages at once? order here matters a lot, so event-handling should be thread-safe at the node level
+- each node can have a thread running at all times, actively doing something
+
